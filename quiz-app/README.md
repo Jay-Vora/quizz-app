@@ -20,6 +20,7 @@ A simple and interactive quiz application built with React. This project helps r
 - CSS (inline styles for now)
 
 ## 📁 Project Structure
+```
 quiz-app/
 ├── src/
 │ ├── components/
@@ -34,3 +35,4 @@ quiz-app/
 │ └── index.html
 ├── package.json
 └── README.md
+```
