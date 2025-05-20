@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 import QuizStart from "./components/QuizStart";
 import QuizQuestion from "./components/QuizQuestion";
+import QuizResult from "./components/QuizResult";
+import { questions } from "./data/questions";
+
 
 function App() {
   const [step, setStep] = useState("start");
@@ -17,13 +20,16 @@ function App() {
           }}
         />
       )}
-      {step === "result" && (
-        <div style={{ textAlign: "center", marginTop: "100px" }}>
-          <h2>Quiz Completed!</h2>
-          <p>Your Score: {finalScore}</p>
-          <button onClick={() => setStep("start")}>Retry</button>
-        </div>
-      )}
+        {step === "result" && (
+      <QuizResult
+        score={finalScore}
+        total={questions.length}
+        onRetry={() => {
+          setFinalScore(0);
+          setStep("start");
+        }}
+  />
+)}
     </div>
   );
 }
