@@ -1,23 +1,46 @@
-import React, {  useEffect } from "react";
+import React, {  useEffect, useState } from "react";
 
 const QuizResult = ({ score, total, onRetry}) => {
-    useEffect(() => {
-    // Send score to Flask backend
-    fetch("http://localhost:5000/results", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ score }),
-    })
+    const [history, setHistory] = useState([]);
+    const [hasPosted, setHasPosted] = useState(false);
+      useEffect(() => {
+    if (!hasPosted) {
+      fetch("http://localhost:5000/results", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ score }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          console.log("✅ Score saved:", data);
+          setHasPosted(true); // prevent duplicate post
+        })
+        .catch((err) => console.error("❌ POST failed:", err));
+    }
+  }, [score, hasPosted]);
+
+   useEffect(() => {
+    fetch("http://localhost:5000/results")
       .then((res) => res.json())
       .then((data) => {
-        console.log("Score saved to backend:", data);
+        setHistory(data.reverse()); // newest first
       })
       .catch((err) => {
-        console.error("Error saving score:", err);
+        console.error("Error fetching result history:", err);
       });
-  }, [score]); // Only run when `score` is passed in
+  }, []);
+
+  useEffect(() => {
+  fetch("http://localhost:5000/results")
+    .then((res) => res.json())
+    .then((data) => {
+      console.log("All results:", data);
+      // You could setResults(data) here
+    })
+    .catch((err) => console.error("GET error:", err));
+}, []);
 
 
 
@@ -32,6 +55,18 @@ const QuizResult = ({ score, total, onRetry}) => {
     >
       Retry Quiz
     </button>
+      {history.length > 0 && (
+    <div className="mt-6 text-left">
+      <h3 className="text-lg font-semibold mb-2 text-gray-700">Previous Attempts:</h3>
+      <ul className="text-sm text-gray-600 space-y-1">
+        {history.slice(0, 5).map((entry, i) => (
+          <li key={i}>
+            Score: {entry.score} at {new Date(entry.timestamp).toLocaleString()}
+          </li>
+        ))}
+      </ul>
+    </div>
+  )}
   </div>
 </div>
     );

@@ -12,33 +12,42 @@ def get_questions():
         questions = json.load(f)
     return jsonify(questions)
 
-@app.route('/results', methods=['POST'])
-def get_results():
-    data = request.get_json()
+@app.route('/results', methods=['GET', 'POST'])
+def handle_results():
+    if request.method == 'POST':
+        data = request.get_json()
 
-    if not data or 'score' not in data:
-        return jsonify({'error':'invalid data'}), 400
-    
-    new_result = {
-        "score": data['score'],
-        "timestamp": datetime.utcnow().isoformat()
-    }
+        if not data or 'score' not in data:
+            return jsonify({'error': 'Invalid data'}), 400
 
-     # Load existing results
-    try:
-        with open('results.json', 'r') as f:
-            results = json.load(f)
-    except FileNotFoundError:
-        results = []
+        new_result = {
+            "score": data['score'],
+            "timestamp": datetime.utcnow().isoformat()
+        }
 
-    results.append(new_result)
+        try:
+            with open('results.json', 'r') as f:
+                results = json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError):
+            results = []
 
-    # Save back to file
-    with open('results.json', 'w') as f:
-        json.dump(results, f, indent=2)
+        results.append(new_result)
 
-    return jsonify({"message": "Result saved", "result": new_result}), 201
+        with open('results.json', 'w') as f:
+            json.dump(results, f, indent=2)
 
+        print(f"✅ Received score: {data['score']} at {datetime.utcnow()}")
+
+        return jsonify({"message": "Result saved", "result": new_result}), 201
+
+    else:  # GET request
+        try:
+            with open('results.json', 'r') as f:
+                results = json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError):
+            results = []
+
+        return jsonify(results)
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
